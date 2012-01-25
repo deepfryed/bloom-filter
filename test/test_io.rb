@@ -8,7 +8,7 @@ describe 'BloomFilter load & dump' do
     assert filter = BloomFilter.new(100)
     assert filter.insert("foo")
     assert filter.dump(file.path), "dump filter"
-    assert filter = BloomFilter.load(file.path, 100)
+    assert filter = BloomFilter.load(file.path)
     assert filter.exists?("foo")
     assert !filter.exists?("bar")
   end

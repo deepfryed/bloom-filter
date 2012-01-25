@@ -65,6 +65,7 @@ VALUE bloom_exists(VALUE klass, VALUE string) {
 
 VALUE bloom_dump(VALUE klass, VALUE file) {
     int fd;
+    uint64_t table_size;
     BloomFilter *filter = bloom_handle(klass);
 
     size_t size  = (filter->table_size + 7) / 8;
@@ -81,6 +82,13 @@ VALUE bloom_dump(VALUE klass, VALUE file) {
         rb_raise(rb_eIOError, "unable to open file. %s", strerror(errno));
     }
 
+    table_size = filter->table_size;
+    if (write(fd, &table_size, sizeof(table_size)) == -1) {
+        free(buffer);
+        close(fd);
+        rb_raise(rb_eIOError, "error dumping BloomFilter: %s\n", strerror(errno));
+    }
+
     if (write(fd, buffer, size) != -1) {
         free(buffer);
         close(fd);
@@ -90,30 +98,26 @@ VALUE bloom_dump(VALUE klass, VALUE file) {
         free(buffer);
         close(fd);
         rb_raise(rb_eIOError, "error dumping BloomFilter: %s\n", strerror(errno));
-        return Qfalse; // not reachable
     }
+
+    return Qfalse; // not reachable
 }
 
-VALUE bloom_load(int argc, VALUE *argv, VALUE klass) {
+VALUE bloom_load(VALUE klass, VALUE file) {
     int fd;
     void *buffer;
     size_t size, bytes;
+    uint64_t table_size;
     BloomFilter *filter;
-    VALUE file, table_size, instance;
-
-    rb_scan_args(argc, argv, "11", &file, &table_size);
-    if (NIL_P(table_size)) {
-        size = 1000000;
-        table_size = INT2NUM(size);
-    }
-    else
-        size = atol(CSTRING(table_size));
+    VALUE ts, instance;
 
     fd = open(CSTRING(file), O_RDONLY);
     if (fd == -1)
         rb_raise(rb_eIOError, "unable to open file: %s", strerror(errno));
 
-    size = (size + 7) / 8;
+    read(fd, &table_size, sizeof(table_size));
+
+    size   = (table_size + 7) / 8;
     buffer = malloc(size);
     if (!buffer) {
         close(fd);
@@ -127,10 +131,11 @@ VALUE bloom_load(int argc, VALUE *argv, VALUE klass) {
         rb_raise(rb_eStandardError, "unable to load BloomFilter, expected %ld but got %ld bytes", size, bytes);
     }
 
+    ts       = ULONG2NUM(table_size);
     instance = bloom_allocate(klass);
-    bloom_initialize(1, &table_size, instance);
-
+    bloom_initialize(1, &ts, instance);
     bloom_filter_load(bloom_handle(instance), buffer);
+
     free(buffer);
     close(fd);
     return instance;
@@ -145,6 +150,6 @@ Init_bloom_filter() {
     rb_define_method(cBloom, "exists?",    RUBY_METHOD_FUNC(bloom_exists),       1);
 
     rb_define_alloc_func(cBloom, bloom_allocate);
-    rb_define_singleton_method(cBloom, "load", RUBY_METHOD_FUNC(bloom_load), -1);
+    rb_define_singleton_method(cBloom, "load", RUBY_METHOD_FUNC(bloom_load), 1);
     rb_define_const(cBloom, "VERSION", rb_str_new2(RUBY_BLOOM_FILTER_VERSION));
 }
