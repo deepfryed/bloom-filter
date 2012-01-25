@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bharanee Rathna"]
-  s.date = %q{2012-01-25}
+  s.date = %q{2012-01-26}
   s.description = %q{A fast Bloom Filter library for Ruby for unices.}
   s.email = ["deepfryed@gmail.com"]
   s.extensions = ["ext/extconf.rb"]

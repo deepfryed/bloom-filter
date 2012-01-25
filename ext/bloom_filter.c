@@ -14,6 +14,11 @@
 #define TO_S(v)    rb_funcall(v, rb_intern("to_s"), 0)
 #define CSTRING(v) RSTRING_PTR(TO_S(v))
 
+typedef struct FileHeader {
+    uint64_t table_size;
+    uint64_t num_functions;
+} FileHeader;
+
 static void bloom_free(BloomFilter *filter) {
     if (filter)
         bloom_filter_free(filter);
@@ -33,17 +38,41 @@ BloomFilter* bloom_handle(VALUE self) {
 }
 
 VALUE bloom_initialize(int argc, VALUE *argv, VALUE self) {
-    size_t size;
-    VALUE table_size;
+    double error;
+    size_t nbits, nhash, nmax;
+
+    VALUE max_size, error_rate, bitmap_size, hash_count, options;
     BloomFilter *filter = 0;
 
-    rb_scan_args(argc, argv, "01", &table_size);
-    if (NIL_P(table_size))
-        size = 1000000;
-    else
-        size = atol(CSTRING(table_size));
+    rb_scan_args(argc, argv, "01", &options);
+    if (!NIL_P(options) && TYPE(options) != T_HASH)
+        rb_raise(rb_eArgError, "invalid options, expect hash");
 
-    filter = bloom_filter_new(size, string_nocase_hash, 4);
+    if (NIL_P(options)) {
+        nbits = 1000000;
+        nhash = 4;
+    }
+    else {
+        max_size    = rb_hash_aref(options, ID2SYM(rb_intern("size")));
+        error_rate  = rb_hash_aref(options, ID2SYM(rb_intern("error_rate")));
+        bitmap_size = rb_hash_aref(options, ID2SYM(rb_intern("bits")));
+        hash_count  = rb_hash_aref(options, ID2SYM(rb_intern("hashes")));
+
+        nhash = NIL_P(hash_count) ? 4 : NUM2ULONG(hash_count);
+
+        if (!NIL_P(bitmap_size))
+            nbits = NUM2ULONG(bitmap_size);
+        else if (!NIL_P(max_size)) {
+            nmax  = NUM2ULONG(max_size);
+            error = NIL_P(error_rate) ? 0.1 : NUM2DBL(error_rate);
+            nbits = (size_t)((4.0 * nmax) / 0.7 + 0.5);
+        }
+        else
+            rb_raise(rb_eArgError, "requires either size & error_rate or bits & hashes");
+    }
+
+
+    filter = bloom_filter_new(nbits, string_nocase_hash, nhash);
 
     if (!filter)
         rb_raise(rb_eNoMemError, "unable to allocate memory for BloomFilter");
@@ -65,11 +94,12 @@ VALUE bloom_include(VALUE klass, VALUE string) {
 
 VALUE bloom_dump(VALUE klass, VALUE file) {
     int fd;
-    uint64_t table_size;
+    uint64_t nbits;
+    FileHeader header;
     BloomFilter *filter = bloom_handle(klass);
 
-    size_t size  = (filter->table_size + 7) / 8;
-    void *buffer = malloc(size);
+    nbits = (filter->table_size + 7) / 8;
+    void *buffer = malloc(nbits);
 
     if (!buffer)
         rb_raise(rb_eNoMemError, "out of memory dumping BloomFilter");
@@ -82,14 +112,16 @@ VALUE bloom_dump(VALUE klass, VALUE file) {
         rb_raise(rb_eIOError, "unable to open file. %s", strerror(errno));
     }
 
-    table_size = filter->table_size;
-    if (write(fd, &table_size, sizeof(table_size)) == -1) {
+    header.table_size    = filter->table_size;
+    header.num_functions = filter->num_functions;
+
+    if (write(fd, &header, sizeof(header)) == -1) {
         free(buffer);
         close(fd);
         rb_raise(rb_eIOError, "error dumping BloomFilter: %s\n", strerror(errno));
     }
 
-    if (write(fd, buffer, size) != -1) {
+    if (write(fd, buffer, nbits) != -1) {
         free(buffer);
         close(fd);
         return Qtrue;
@@ -106,35 +138,37 @@ VALUE bloom_dump(VALUE klass, VALUE file) {
 VALUE bloom_load(VALUE klass, VALUE file) {
     int fd;
     void *buffer;
-    size_t size, bytes;
-    uint64_t table_size;
+    size_t nbits, bytes;
+    FileHeader header;
     BloomFilter *filter;
-    VALUE ts, instance;
+    VALUE instance;
 
     fd = open(CSTRING(file), O_RDONLY);
     if (fd == -1)
         rb_raise(rb_eIOError, "unable to open file: %s", strerror(errno));
 
-    read(fd, &table_size, sizeof(table_size));
+    if (read(fd, &header, sizeof(header)) != sizeof(header)) {
+        close(fd);
+        rb_raise(rb_eIOError, "unable to read file, header corrupted\n");
+    }
 
-    size   = (table_size + 7) / 8;
-    buffer = malloc(size);
+    nbits  = (header.table_size + 7) / 8;
+    buffer = malloc(nbits);
     if (!buffer) {
         close(fd);
         rb_raise(rb_eNoMemError, "out of memory dumping BloomFilter");
     }
 
-    bytes = read(fd, buffer, size);
-    if (bytes != size) {
+    bytes = read(fd, buffer, nbits);
+    if (bytes != nbits) {
         free(buffer);
         close(fd);
-        rb_raise(rb_eStandardError, "unable to load BloomFilter, expected %ld but got %ld bytes", size, bytes);
+        rb_raise(rb_eStandardError, "unable to load BloomFilter, expected %ld but got %ld bytes", nbits, bytes);
     }
 
-    ts       = ULONG2NUM(table_size);
-    instance = bloom_allocate(klass);
-    bloom_initialize(1, &ts, instance);
-    bloom_filter_load(bloom_handle(instance), buffer);
+    filter = bloom_filter_new(header.table_size, string_nocase_hash, header.num_functions);
+    bloom_filter_load(filter, buffer);
+    instance = Data_Wrap_Struct(klass, 0, bloom_free, filter);
 
     free(buffer);
     close(fd);
