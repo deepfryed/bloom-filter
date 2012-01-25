@@ -20,7 +20,7 @@ BloomFilter is a ruby library that implements an in-memory [Bloom Filter](http:/
     .load
     #dump
     #insert
-    #exists?
+    #include?
 
 ```
 
@@ -33,11 +33,11 @@ BloomFilter is a ruby library that implements an in-memory [Bloom Filter](http:/
   filter = BloomFilter.new 100_000
 
   filter.insert "foo"
-  filter.exists? "foo" #=> true
-  filter.exists? "bar" #=> false
+  filter.include? "foo" #=> true
+  filter.include? "bar" #=> false
 
   filter.dump "/tmp/random.bloom"
-  filter = BloomFilter.load "/tmp/random.bloom", 100_000
+  filter = BloomFilter.load "/tmp/random.bloom"
 ```
 
 ## See Also

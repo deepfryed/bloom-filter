@@ -17,7 +17,7 @@ describe 'BloomFilter primitives' do
   it 'should allow membership checks' do
     assert filter = BloomFilter.new(100)
     assert filter.insert("foo")
-    assert filter.exists?("foo")
-    assert !filter.exists?("bar")
+    assert filter.include?("foo")
+    assert !filter.include?("bar")
   end
 end

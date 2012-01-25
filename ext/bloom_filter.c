@@ -58,7 +58,7 @@ VALUE bloom_insert(VALUE klass, VALUE string) {
     return Qtrue;
 }
 
-VALUE bloom_exists(VALUE klass, VALUE string) {
+VALUE bloom_include(VALUE klass, VALUE string) {
     BloomFilter *filter = bloom_handle(klass);
     return bloom_filter_query(filter, (BloomFilterValue)CSTRING(string)) ? Qtrue : Qfalse;
 }
@@ -147,7 +147,7 @@ Init_bloom_filter() {
     rb_define_method(cBloom, "initialize", RUBY_METHOD_FUNC(bloom_initialize),  -1);
     rb_define_method(cBloom, "dump",       RUBY_METHOD_FUNC(bloom_dump),         1);
     rb_define_method(cBloom, "insert",     RUBY_METHOD_FUNC(bloom_insert),       1);
-    rb_define_method(cBloom, "exists?",    RUBY_METHOD_FUNC(bloom_exists),       1);
+    rb_define_method(cBloom, "include?",   RUBY_METHOD_FUNC(bloom_include),      1);
 
     rb_define_alloc_func(cBloom, bloom_allocate);
     rb_define_singleton_method(cBloom, "load", RUBY_METHOD_FUNC(bloom_load), 1);
