@@ -1,0 +1,9 @@
+ext/*
+!ext/extconf.rb
+!ext/*.c
+!ext/*.cc
+!ext/*.h
+*.so
+pkg/
+tmp/
+*.gem
