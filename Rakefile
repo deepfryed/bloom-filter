@@ -15,7 +15,7 @@ $gemspec = Gem::Specification.new do |s|
   s.summary           = 'A fast Bloom Filter library for Ruby.'
   s.description       = 'A fast Bloom Filter library for Ruby for unices.'
   s.homepage          = 'http://github.com/deepfryed/bloom-filter'
-  s.files             = Dir['ext/**/*.{cc,c,h}'] + Dir['{ext,test}/*.rb'] + %w(README.md CHANGELOG) + Dir['lib/*']
+  s.files             = Dir['ext/**/*.{cc,c,h}'] + Dir['{ext,test}/*.rb'] + %w(README.md CHANGELOG) + Dir['lib/**/*.rb']
   s.extensions        = %w(ext/extconf.rb)
   s.require_paths     = %w(lib)
 

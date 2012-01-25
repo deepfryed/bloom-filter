@@ -10,7 +10,7 @@ Gem::Specification.new do |s|
   s.description = %q{A fast Bloom Filter library for Ruby for unices.}
   s.email = ["deepfryed@gmail.com"]
   s.extensions = ["ext/extconf.rb"]
-  s.files = ["ext/hash-string.c", "ext/bloom-filter.c", "ext/bloom_filter.c", "ext/bloom-filter.h", "ext/version.h", "ext/hash-string.h", "ext/extconf.rb", "test/test_io.rb", "test/helper.rb", "test/test_basic.rb", "README.md", "CHANGELOG", "lib/bloom-filter.rb", "lib/bloom_filter.so"]
+  s.files = ["ext/hash-string.c", "ext/bloom-filter.c", "ext/bloom_filter.c", "ext/bloom-filter.h", "ext/version.h", "ext/hash-string.h", "ext/extconf.rb", "test/test_io.rb", "test/helper.rb", "test/test_basic.rb", "README.md", "CHANGELOG", "lib/bloom-filter.rb"]
   s.homepage = %q{http://github.com/deepfryed/bloom-filter}
   s.require_paths = ["lib"]
   s.rubygems_version = %q{1.3.7}
