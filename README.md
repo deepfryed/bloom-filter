@@ -31,10 +31,10 @@ BloomFilter is a ruby library that implements an in-memory [Bloom Filter](http:/
 
   filter = BloomFilter.new
 
-  # auto-calculate optimum bitmap size based on maximum number of items stored and desired error rate.
+  # auto-calculate optimum bitmap size based on maximum number of items stored and desired max error rate.
   filter = BloomFilter.new size: 100_000, error_rate: 0.01
 
-  # specify bitmap size & hash functions explicitly.
+  # specify bitmap size & number of hash functions explicitly.
   filter = BloomFilter.new bits: 100_000_0, hashes: 4
 
   filter.insert "foo"
