@@ -5,6 +5,7 @@
 #include <errno.h>
 #include <string.h>
 #include <stdlib.h>
+#include <math.h>
 
 #include "ruby/ruby.h"
 #include "bloom-filter.h"
@@ -64,13 +65,13 @@ VALUE bloom_initialize(int argc, VALUE *argv, VALUE self) {
             nbits = NUM2ULONG(bitmap_size);
         else if (!NIL_P(max_size)) {
             nmax  = NUM2ULONG(max_size);
-            error = NIL_P(error_rate) ? 0.1 : NUM2DBL(error_rate);
-            nbits = (size_t)((4.0 * nmax) / 0.7 + 0.5);
+            error = NIL_P(error_rate) ? 0.01 : NUM2DBL(error_rate);
+            nbits = ceil(fabs(log(error) * (double)nmax / pow(log(2), 2)));
+            nhash = ceil(0.7 * (double)nbits / (double)nmax);
         }
         else
             rb_raise(rb_eArgError, "requires either size & error_rate or bits & hashes");
     }
-
 
     filter = bloom_filter_new(nbits, string_nocase_hash, nhash);
 
