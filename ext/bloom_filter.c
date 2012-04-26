@@ -136,6 +136,30 @@ VALUE bloom_dump(VALUE klass, VALUE file) {
     return Qfalse; // not reachable
 }
 
+VALUE bloom_bits(VALUE klass) {
+    BloomFilter *filter = bloom_handle(klass);
+
+    int i = 0;
+    int nbits = filter->table_size;
+    char buffer[nbits];
+
+    unsigned char b;
+    int bit;
+
+    for (i = 0; i < nbits; i++) {
+        b = filter->table[i / 8];
+        bit = 1 << (i % 8);
+
+        if ((b & bit) == 0) {
+	    buffer[i] = '0';
+	} else {
+	    buffer[i] = '1';
+	}
+    }
+
+    return rb_str_new(buffer, nbits);
+}
+
 VALUE bloom_load(VALUE klass, VALUE file) {
     int fd;
     void *buffer;
@@ -181,6 +205,7 @@ Init_bloom_filter() {
 
     rb_define_method(cBloom, "initialize", RUBY_METHOD_FUNC(bloom_initialize),  -1);
     rb_define_method(cBloom, "dump",       RUBY_METHOD_FUNC(bloom_dump),         1);
+    rb_define_method(cBloom, "bits",       RUBY_METHOD_FUNC(bloom_bits),         0);
     rb_define_method(cBloom, "insert",     RUBY_METHOD_FUNC(bloom_insert),       1);
     rb_define_method(cBloom, "include?",   RUBY_METHOD_FUNC(bloom_include),      1);
 
