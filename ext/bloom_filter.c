@@ -150,11 +150,10 @@ VALUE bloom_bits(VALUE klass) {
         b = filter->table[i / 8];
         bit = 1 << (i % 8);
 
-        if ((b & bit) == 0) {
-	    buffer[i] = '0';
-	} else {
-	    buffer[i] = '1';
-	}
+        if ((b & bit) == 0)
+            buffer[i] = '0';
+	    else
+	        buffer[i] = '1';
     }
 
     return rb_str_new(buffer, nbits);

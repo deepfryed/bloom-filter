@@ -20,4 +20,10 @@ describe 'BloomFilter primitives' do
     assert filter.include?("foo")
     assert !filter.include?("bar")
   end
+
+  it 'should return bits as a string' do
+    assert filter = BloomFilter.new(bits: 5, hashes: 2)
+    assert filter.insert("a")
+    assert_equal "10010", filter.bits
+  end
 end

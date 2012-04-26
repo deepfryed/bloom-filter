@@ -21,6 +21,7 @@ BloomFilter is a ruby library that implements an in-memory [Bloom Filter](http:/
     #dump
     #insert
     #include?
+    #bits
 
 ```
 
@@ -43,6 +44,8 @@ BloomFilter is a ruby library that implements an in-memory [Bloom Filter](http:/
 
   filter.dump "/tmp/random.bloom"
   filter = BloomFilter.load "/tmp/random.bloom"
+
+  bits = filter.bits #=> "10010100100111..."
 ```
 
 ## See Also
