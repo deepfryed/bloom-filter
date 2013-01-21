@@ -2,11 +2,11 @@
 
 Gem::Specification.new do |s|
   s.name = "bloom-filter"
-  s.version = "0.2.0"
+  s.version = "0.2.1"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
   s.authors = ["Bharanee Rathna"]
-  s.date = "2012-04-27"
+  s.date = "2013-01-21"
   s.description = "A fast Bloom Filter library for Ruby for unices."
   s.email = ["deepfryed@gmail.com"]
   s.extensions = ["ext/extconf.rb"]

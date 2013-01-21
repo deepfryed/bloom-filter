@@ -52,10 +52,10 @@ BloomFilter is a ruby library that implements an in-memory [Bloom Filter](http:/
 
 [https://github.com/igrigorik/bloomfilter-rb](https://github.com/igrigorik/bloomfilter-rb)
 
-## License
-
-[Creative Commons Attribution - CC BY](http://creativecommons.org/licenses/by/3.0)
-
 ## Home Page
 
 [https://github.com/deepfryed/bloom-filter](https://github.com/deepfryed/bloom-filter)
+
+## License
+
+MIT

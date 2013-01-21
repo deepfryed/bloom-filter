@@ -79,6 +79,7 @@ VALUE bloom_initialize(int argc, VALUE *argv, VALUE self) {
         rb_raise(rb_eNoMemError, "unable to allocate memory for BloomFilter");
 
     DATA_PTR(self) = filter;
+    return self;
 }
 
 
@@ -95,12 +96,13 @@ VALUE bloom_include(VALUE klass, VALUE string) {
 
 VALUE bloom_dump(VALUE klass, VALUE file) {
     int fd;
+    void *buffer;
     uint64_t nbits;
     FileHeader header;
     BloomFilter *filter = bloom_handle(klass);
 
-    nbits = (filter->table_size + 7) / 8;
-    void *buffer = malloc(nbits);
+    nbits  = (filter->table_size + 7) / 8;
+    buffer = malloc(nbits);
 
     if (!buffer)
         rb_raise(rb_eNoMemError, "out of memory dumping BloomFilter");
@@ -139,12 +141,14 @@ VALUE bloom_dump(VALUE klass, VALUE file) {
 VALUE bloom_bits(VALUE klass) {
     BloomFilter *filter = bloom_handle(klass);
 
-    int i = 0;
-    int nbits = filter->table_size;
-    char buffer[nbits];
-
+    VALUE bitmap;
+    char *buffer;
     unsigned char b;
-    int bit;
+    int i = 0, bit, nbits = filter->table_size;
+
+    buffer = (char *)malloc(nbits);
+    if (!buffer)
+        rb_raise(rb_eNoMemError, "out of memory dumping BloomFilter");
 
     for (i = 0; i < nbits; i++) {
         b = filter->table[i / 8];
@@ -156,7 +160,9 @@ VALUE bloom_bits(VALUE klass) {
 	        buffer[i] = '1';
     }
 
-    return rb_str_new(buffer, nbits);
+    bitmap = rb_str_new(buffer, nbits);
+    free(buffer);
+    return bitmap;
 }
 
 VALUE bloom_load(VALUE klass, VALUE file) {
@@ -199,7 +205,7 @@ VALUE bloom_load(VALUE klass, VALUE file) {
     return instance;
 }
 
-Init_bloom_filter() {
+void Init_bloom_filter() {
     VALUE cBloom = rb_define_class("BloomFilter", rb_cObject);
 
     rb_define_method(cBloom, "initialize", RUBY_METHOD_FUNC(bloom_initialize),  -1);
