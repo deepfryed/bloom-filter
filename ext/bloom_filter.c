@@ -165,6 +165,32 @@ VALUE bloom_bits(VALUE klass) {
     return bitmap;
 }
 
+VALUE bloom_binary(VALUE klass) {
+    BloomFilter *filter = bloom_handle(klass);
+
+    VALUE bitmap;
+    char *buffer;
+
+    int nbytes = (filter->table_size + 7) / 8;
+    buffer = (char *)malloc(nbytes);
+
+    if (!buffer)
+        rb_raise(rb_eNoMemError, "out of memory dumping BloomFilter");
+
+    bloom_filter_read(filter, buffer);
+
+    bitmap = rb_str_new(buffer, nbytes);
+    free(buffer);
+    return bitmap;
+}
+
+VALUE bloom_binary_set(VALUE klass, VALUE buffer) {
+    BloomFilter *filter = bloom_handle(klass);
+    char* ptr = (char *) RSTRING_PTR(buffer);
+    bloom_filter_load(filter, ptr);
+    return Qtrue;
+}
+
 VALUE bloom_load(VALUE klass, VALUE file) {
     int fd;
     void *buffer;
@@ -211,6 +237,8 @@ void Init_bloom_filter() {
     rb_define_method(cBloom, "initialize", RUBY_METHOD_FUNC(bloom_initialize),  -1);
     rb_define_method(cBloom, "dump",       RUBY_METHOD_FUNC(bloom_dump),         1);
     rb_define_method(cBloom, "bits",       RUBY_METHOD_FUNC(bloom_bits),         0);
+    rb_define_method(cBloom, "binary",     RUBY_METHOD_FUNC(bloom_binary),       0);
+    rb_define_method(cBloom, "binary=",    RUBY_METHOD_FUNC(bloom_binary_set),   1);
     rb_define_method(cBloom, "insert",     RUBY_METHOD_FUNC(bloom_insert),       1);
     rb_define_method(cBloom, "include?",   RUBY_METHOD_FUNC(bloom_include),      1);
 
