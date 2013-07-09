@@ -12,4 +12,16 @@ describe 'BloomFilter load & dump' do
     assert filter.include?("foo")
     assert !filter.include?("bar")
   end
+
+  it 'should accept assigning the bits directly' do
+    assert filter = BloomFilter.new(bits: 80)
+    assert filter.insert("foo")
+    puts filter.binary.inspect
+    assert filter2 = BloomFilter.new(bits: 80)
+    assert filter2.binary = filter.binary
+    puts
+    puts filter2.binary.inspect
+    assert filter2.include?("foo")
+    assert !filter2.include?("bar")
+  end
 end
