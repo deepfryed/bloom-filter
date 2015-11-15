@@ -15,12 +15,13 @@ $gemspec = Gem::Specification.new do |s|
   s.summary           = 'A fast Bloom Filter library for Ruby.'
   s.description       = 'A fast Bloom Filter library for Ruby for unices.'
   s.homepage          = 'http://github.com/deepfryed/bloom-filter'
-  s.files             = Dir['ext/**/*.{cc,c,h}'] + Dir['{ext,test}/*.rb'] + %w(README.md CHANGELOG) + Dir['lib/**/*.rb']
+  s.files             = Dir['ext/**/*.{cc,c,h}'] + Dir['{ext,test}/*.rb'] + %w(LICENSE README.md CHANGELOG) + Dir['lib/**/*.rb']
+  s.licenses          = %W(MIT)
   s.extensions        = %w(ext/extconf.rb)
   s.require_paths     = %w(lib)
 
-  s.add_development_dependency('rake')
-  s.add_development_dependency('rake-compiler')
+  s.add_development_dependency('rake', '~> 0')
+  s.add_development_dependency('rake-compiler', '~> 0')
 end
 
 desc 'Generate bloom-filter gemspec'
