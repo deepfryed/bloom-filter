@@ -169,24 +169,24 @@ VALUE bloom_binary(VALUE klass) {
     BloomFilter *filter = bloom_handle(klass);
 
     VALUE bitmap;
-    char *buffer;
+    unsigned char *buffer;
 
     int nbytes = (filter->table_size + 7) / 8;
-    buffer = (char *)malloc(nbytes);
+    buffer = (unsigned char *)malloc(nbytes);
 
     if (!buffer)
         rb_raise(rb_eNoMemError, "out of memory dumping BloomFilter");
 
     bloom_filter_read(filter, buffer);
 
-    bitmap = rb_str_new(buffer, nbytes);
+    bitmap = rb_str_new((const char *)buffer, nbytes);
     free(buffer);
     return bitmap;
 }
 
 VALUE bloom_binary_set(VALUE klass, VALUE buffer) {
     BloomFilter *filter = bloom_handle(klass);
-    char* ptr = (char *) RSTRING_PTR(buffer);
+    unsigned char* ptr = (unsigned char *) RSTRING_PTR(buffer);
     bloom_filter_load(filter, ptr);
     return Qtrue;
 }
